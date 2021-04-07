@@ -1,24 +1,38 @@
 const http = require('http');
+const url = require('url');
+const routes = require('./routes');
+
 
 const server = http.createServer((req,res) => {
     req.setEncoding('utf-8');
+    let path = req.url
+    // '/folder/to/file/' becomes 'folder/to/file'
+    path = path.replace(/^\/+|\/+$/g, "");
+    console.log(path);
+
 
     //req is a stream, 'data' event listens for body content to be
     //processed in chunks
-    const {method, url} = req;
+    let details;
     req.on('data', (data) => {
-        const json = JSON.parse(data);
-        console.log(json.text);
+        details = data;
     });
     req.on('end', () => {
-        //this is done when the stream ends
+        //'end' event occurs when the stream ends
         console.log("End of request");
-    })
+        const json = JSON.parse(details);
+        let route =
+            typeof routes[path] !== "undefined" ? routes[path] : routes["notFound"];
+
+        route(json,res);
+    });
     req.on('close', () => {
         console.log('Connection closed')
     });
     req.on('error', (err) => {
         console.log(err);
+        res.statusCode(400);
+        res.end();
     });
 });
 
