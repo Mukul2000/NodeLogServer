@@ -5,7 +5,6 @@ const routes = {
     logs: async (data, res) => {
         //filtering out the required logs
         const { startDate, startTime, endDate, endTime } = data.queryString;
-        console.log(typeof startDate);
         if (startDate === undefined && endDate === undefined) {
             let payload = {
                 message: "Bad request, dates missing",
@@ -31,8 +30,8 @@ const routes = {
             const date_now = line.substr(0, 10);
             const time_now = line.substr(11, 8);
             if (date_now >= startDate && date_now <= endDate) {
-                if (time !== undefined) {
-                    if (time_now >= time) {
+                if (startTime !== undefined && endTime !== undefined) {
+                    if (time_now >= startTime && time_now <= endTime) {
                         res.write(line);
                         res.write("\n");
                     }
