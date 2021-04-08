@@ -1,8 +1,13 @@
+const fs = require('fs');
+const readline = require('readline');
+
 const routes = {
-    logs: (data, res) => {
-        //IDEA: find lower_bound for the given bounds and give +- 100 records into socket.
+    logs: async (data, res) => {
+        //IDEA: find lower_bound for the given bounds and give +100 records to socket
+        //right now just get binary search working.
+
     },
-    notFound: (data,res) => {
+    notFound: (data, res) => {
         //If no route matches
         let payload = {
             message: "File Not Found",
