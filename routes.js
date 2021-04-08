@@ -4,8 +4,22 @@ const readline = require('readline');
 const routes = {
     logs: async (data, res) => {
         //filtering out the required logs
-        const { startDate, startTime, endDate, endTime } = data;
-        console.log(startDate, startTime, endDate, endTime)
+        const { startDate, startTime, endDate, endTime } = data.queryString;
+        console.log(typeof startDate);
+        if (startDate === undefined && endDate === undefined) {
+            let payload = {
+                message: "Bad request, dates missing",
+                code: 400
+            };
+            let payloadStr = JSON.stringify(payload);
+            res.setHeader("Content-Type", "application/json");
+            res.setHeader("Access-Control-Allow-Origin", "*");
+            res.writeHead(404);
+
+            res.write(payloadStr);
+            res.end("\n");
+        }
+
         const fileStream = fs.createReadStream('./example.txt');
 
         const rl = readline.createInterface({
@@ -14,11 +28,19 @@ const routes = {
         });
 
         rl.on('line', (line) => {
-            const date = line.substr(0,10);
-            const time = line.substr(11,8);
-            if(date >= startDate && time >= startTime && date <= endDate && time <= endTime) {
-                res.write(line+"\n");
-                console.log(date,time);
+            const date_now = line.substr(0, 10);
+            const time_now = line.substr(11, 8);
+            if (date_now >= startDate && date_now <= endDate) {
+                if (time !== undefined) {
+                    if (time_now >= time) {
+                        res.write(line);
+                        res.write("\n");
+                    }
+                }
+                else {
+                    res.write(line);
+                    res.write("\n");
+                }
             }
         });
         rl.on('close', () => {
