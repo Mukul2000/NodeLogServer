@@ -1,7 +1,6 @@
 const routes = {
     logs: (data, res) => {
-        //TODO: Entire logic for filtering out the required logs
-        res.end(JSON.stringify(data));
+        //IDEA: find lower_bound for the given bounds and give +- 100 records into socket.
     },
     notFound: (data,res) => {
         //If no route matches
