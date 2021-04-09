@@ -5,13 +5,13 @@ const routes = {
     logs: async (data, res) => {
         // date format is YYYY-MM-DD
         // time format is hh:mm:ss
-        // searchString is date + "T" + time
+        
         const { startDate, startTime, endDate, endTime } = data.queryString;
 
-        //all parameters required
+        //all parameters are required
         if (startDate === undefined || startTime === undefined
             || endDate === undefined || endTime === undefined) {
-            bad_request("Bad request, request parameters missing", res, 400);
+            bad_request("Bad request, one or more request parameters missing", res, 400);
             return;
         }
 
@@ -21,7 +21,8 @@ const routes = {
             return;
         }
 
-        //form search strings
+        // form search strings
+        // format is date + "T" + time
         const startSearchString = startDate + "T" + startTime;
         const endSearchString = endDate + "T" + endTime;
 
@@ -34,8 +35,8 @@ const routes = {
         const endLine = lower.ans;
         const endLineByte = lower.start_byte + lower.len;
 
-        //Take care of when any one of start`Line or endLine are null
-        //user is possibly requesting logs at a future point of time
+        // Take care of when any one of start`Line or endLine are null
+        // user is possibly requesting logs at a future point of time
         if(startLine == null || endLine == null) {
             bad_request("Something went wrong, possibly your parameters include a point of time in the future",res, 400);
             return;
@@ -67,7 +68,6 @@ const routes = {
 }
 
 function bad_request(message, res, code) {
-    //If no route matches
     let payload = {
         message: message,
         code: code

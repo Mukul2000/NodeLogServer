@@ -5,12 +5,10 @@ const URL = require('url');
 
 const server = http.createServer();
 server.on('request', (req, res) => {
-    //console.log(req.url);
     let parsedURL = URL.parse(req.url, true);
     let path = parsedURL.pathname;
-    // console.log(parsedURL);
+
     // standardize the requested url by removing any '/' at the start or end
-    // '/folder/to/file/' becomes 'folder/to/file'
     // makes it easier when setting up routes
     path = path.replace(/^\/+|\/+$/g, "");
     let qs = parsedURL.query; //request parameters
@@ -33,7 +31,7 @@ server.on('request', (req, res) => {
             headers: headers,
             method: method
         };
-        // console.log(data);
+
         route(data, res);
     });
     req.on('close', () => {

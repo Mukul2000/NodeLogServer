@@ -6,7 +6,7 @@ const { EOL } = require('os');
 function lower_bound(searchString) {
     const file_name = 'example.txt';
     let ans = null;
-    let start_byte = null;
+    let start_byte = null; //store the byte at which the ans starts
     let len = 0;
 
     fd = fs.openSync(file_name, 'r');
@@ -25,20 +25,24 @@ function lower_bound(searchString) {
             for (let i = 0; i < cur.length; i++) {
                 if (cur[i] === EOL) {
                     pos = i + 1;
-                    break;
+                    break; //break at first line break
                 }
             }
         }
 
-        //mid + pos now points at start of new line
-        let pos2 = pos;
-        let currentLogLine = ""; //will store from mid + pos to mid + pos + 258 bytes
+        //mid + pos now points at start of line after the line mid is on
+        let pos2 = pos; //save pos
+        let currentLogLine = ""; 
+        //will store from mid + pos to mid + pos + 256 bytes or wherever
+        //line break occurs earlier
+
+        
         pos = fs.readSync(fd, buffer, 0, buffer.length, mid + pos);
         let current = buffer.slice(0, pos).toString();
         for (let i = 0; i < current.length; i++) {
             currentLogLine += current[i];
             if (current[i] === EOL) break;
-            //only want upto the first line break
+            //only want upto the first line break, makes one whole log
         }
 
         let dt = currentLogLine.substr(0, 19); //extract the date and time part from the log line //OK
