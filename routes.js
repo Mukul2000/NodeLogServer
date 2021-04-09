@@ -1,11 +1,15 @@
-const fs = require('fs');
-const readline = require('readline');
+const {lower_bound, Rlower_bound} = require('./search');
 
 const routes = {
     logs: async (data, res) => {
-        //IDEA: find lower_bound for the given bounds and give +100 records to socket
-        //right now just get binary search working.
+        // date format is YYYY-MM-DD
+        // time format is hh:mm:ss
+        // searchString is date + "T" + time
+        const {startDate, startTime, endDate, endTime} = data.queryString;
+        const startSearchString = startDate + "T" + startTime;
+        const endSearchString = endDate + "T" + endTime;
 
+        
     },
     notFound: (data, res) => {
         //If no route matches
