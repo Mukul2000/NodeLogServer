@@ -41,19 +41,27 @@ const routes = {
             return;
         }
 
-        //serve up everything from startLineByte to endLineByte
-        //TODO: subject to limitation on how many logs to transfer
+        // serve up everything from startLineByte to endLineByte
+        // subject to limitation on size of logs to transfer per request
+        const max_transfer_size = 1024000000; //10MB
+        let flag = 0; //To add a message that logs have been truncated
+
         let bytesToServe = endLineByte - startLineByte + 1;
+        if(bytesToServe > max_transfer_size) {
+            bytesToServe = max_transfer_size;
+            flag = 1;
+        }
+
         if (endLine > endSearchString) bytesToServe--;
+        
         let buffer = Buffer.alloc(bytesToServe);
         fd = fs.openSync('example.txt', 'r');
         let ps = fs.readSync(fd, buffer, 0, buffer.length, startLineByte);
         let result = buffer.slice(0, ps).toString();
         res.write(result);
+        if(flag === 1) res.write("Lines truncated....");
         res.end();
         fs.closeSync(fd);
-
-
     },
     notFound: (data, res) => bad_request("Invalid route", res, 404)
 }
