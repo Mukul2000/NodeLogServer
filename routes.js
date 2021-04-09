@@ -2,7 +2,7 @@ const fs = require('fs');
 const { lower_bound } = require('./search');
 
 const routes = {
-    logs: async (data, res) => {
+    logs: (data, res) => {
         // date format is YYYY-MM-DD
         // time format is hh:mm:ss
         
@@ -16,7 +16,7 @@ const routes = {
         }
 
         //invalid request interval
-        if ((endDate < startDate) || (endTime < startTime)) {
+        if ((endDate < startDate) || ( (startDate === endDate) && (endTime < startTime) )) {
             bad_request("Bad request, request intervals incorrect", res, 400);
             return;
         }
