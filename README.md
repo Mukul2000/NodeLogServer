@@ -10,7 +10,7 @@ node server.js
 localhost:8000/logs?startDate=date1&startTime=time1&endDate=date2&endTime=time2
 
 All parameters, date1, time1, date2, time2 are strings.  
-Date format : YYYY-MM-DD
+Date format : YYYY-MM-DD  
 Time format : hh:mm:ss
 
 Example- 
