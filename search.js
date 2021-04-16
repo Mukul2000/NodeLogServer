@@ -49,7 +49,8 @@ async function searchInFiles(startSearchString, endSearchString, res) {
                     await close(fd);
                 }
                 else {
-                    // This file contains the whole query or this is the final part of query
+                    // This file contains the whole query
+                    // or this is the final part of a query spanning files
                     // take data and exit from file iteration
                     let bytesToServe = endLineByte - startLineByte + 1;
                     if (endLine > endSearchString) bytesToServe--;
@@ -136,17 +137,17 @@ async function lower_bound(searchString, fd, bytes) {
     }
 }
 
-async function Icheckbinarysearch() {
-    const file_path = "./checker.txt";
-    let file_descriptor = open(file_path, 'r');
-    let stats = stat(file_path);
-    const [fd, bytes] = await Promise.all([file_descriptor, stats]);
-    const searchString = "2020-01-01T00:01:50"
-    const res1 = await lower_bound(searchString, fd, bytes.size);
-    console.log(res1);
-}
+// async function Icheckbinarysearch() {
+//     const file_path = "./checker.txt";
+//     let file_descriptor = open(file_path, 'r');
+//     let stats = stat(file_path);
+//     const [fd, bytes] = await Promise.all([file_descriptor, stats]);
+//     const searchString = "2020-01-01T00:01:50"
+//     const res1 = await lower_bound(searchString, fd, bytes.size);
+//     console.log(res1);
+// }
 
-Icheckbinarysearch();
+// Icheckbinarysearch();
 
 
 module.exports = { lower_bound, searchInFiles };
