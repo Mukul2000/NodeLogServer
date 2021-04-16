@@ -34,10 +34,10 @@ const routes = {
         const lower = await lower_bound(endSearchString);
         const endLine = lower.ans;
         const endLineByte = lower.start_byte + lower.len;
-
+        console.log(startSearchString, endSearchString);
         console.log(upper,lower);
 
-        // Take care of when any one of start`Line or endLine are null
+        // Take care of when any one of startLine or endLine are null
         // user is possibly requesting logs at a future point of time
         if(startLine == null || endLine == null) {
             bad_request("Something went wrong, possibly your parameters include a point of time in the future",res, 400);
