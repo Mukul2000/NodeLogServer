@@ -137,4 +137,4 @@ async function lower_bound(searchString, fd, bytes) {
     }
 }
 
-module.exports = { lower_bound, searchInFiles };
+module.exports = { searchInFiles };

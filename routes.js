@@ -1,5 +1,4 @@
-const { open, close, read, stat } = require('./promisify');
-const { lower_bound, searchInFiles } = require('./search');
+const { searchInFiles } = require('./search');
 
 const routes = {
     logs: async (data, res) => {
