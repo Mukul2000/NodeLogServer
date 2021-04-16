@@ -34,8 +34,6 @@ const routes = {
         const lower = await lower_bound(endSearchString);
         const endLine = lower.ans;
         const endLineByte = lower.start_byte + lower.len;
-        console.log(startSearchString, endSearchString);
-        console.log(upper,lower);
 
         // Take care of when any one of startLine or endLine are null
         // user is possibly requesting logs at a future point of time

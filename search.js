@@ -9,15 +9,14 @@ async function lower_bound(searchString) {
     let start_byte = null; //store the byte at which the ans starts
     let len = 0;
 
-    let fd = await open(file_path, 'r');
+    let file_descriptor = open(file_path, 'r');
 
     let buffer = Buffer.alloc(258);
-    let bytes = (await stat(file_path)).size;
+    let stats = stat(file_path);
+    const [fd,bytes] = await Promise.all([file_descriptor,stats]); //both are independent, can do here
     let lo = 0;
-    let hi = bytes - 1;
+    let hi = bytes.size - 1;
     
-    // console.log(hi);
-
     while (lo < hi) {
 
         let mid = lo + Math.floor((hi - lo) / 2);
