@@ -1,57 +1,55 @@
-const fs = require('fs');
-const { EOL } = require('os');
+const {open, close, read, stat} = require('./promisify');
+const { EOL } = require('os');        
 
 
 //find first log with timestamp >= searchString
-function lower_bound(searchString) {
-    const file_name = 'example.txt';
+async function lower_bound(searchString,fd,bytes) {
     let ans = null;
     let start_byte = null; //store the byte at which the ans starts
     let len = 0;
 
-    fd = fs.openSync(file_name, 'r');
-
     let buffer = Buffer.alloc(258);
-
-    let lo = 0, hi = fs.statSync(file_name).size - 1;
-
+    
+    let lo = 0;
+    let hi = bytes - 1;
+    
     while (lo < hi) {
 
         let mid = lo + Math.floor((hi - lo) / 2);
-        let pos = 0;
+        let pos;
+        let bytesToNext=0;
         if (mid > 0) {
-            pos = fs.readSync(fd, buffer, 0, buffer.length, mid); //read 258 bytes and fill my buffer
-            const cur = buffer.slice(0, pos).toString();
+            pos = await read(fd, buffer, 0, buffer.length, mid); // read 258 bytes and fill my buffer
+            const cur = buffer.slice(0, pos.bytesRead).toString();
             for (let i = 0; i < cur.length; i++) {
                 if (cur[i] === EOL) {
-                    pos = i + 1;
-                    break; //break at first line break
+                    bytesToNext = i + 1;
+                    break; // break at first line break
                 }
             }
         }
 
-        //mid + pos now points at start of line after the line mid is on
-        let pos2 = pos; //save pos
+        // mid + bytesToNext now points at start of line after the line mid is on
         let currentLogLine = ""; 
-        //will store from mid + pos to mid + pos + 256 bytes or wherever
-        //line break occurs earlier
+        // will store from mid + bytesToNext to mid + bytesToNext + 256 bytes or wherever
+        // line break occurs earlier
 
         
-        pos = fs.readSync(fd, buffer, 0, buffer.length, mid + pos);
-        let current = buffer.slice(0, pos).toString();
+        pos = await read(fd, buffer, 0, buffer.length, mid + bytesToNext);
+        let current = buffer.slice(0, pos.bytesRead).toString();
         for (let i = 0; i < current.length; i++) {
             currentLogLine += current[i];
             if (current[i] === EOL) break;
-            //only want upto the first line break, makes one whole log
+            // only want upto the first line break, makes one whole log
         }
 
-        let dt = currentLogLine.substr(0, 19); //extract the date and time part from the log line //OK
+        let dt = currentLogLine.substr(0, 19); // extract the date and time part from the log line //OK
 
-        //update bounds
+        // update bounds
         if (dt >= searchString) {
             hi = mid - 1;
             ans = currentLogLine;
-            start_byte = mid + pos2;
+            start_byte = mid + bytesToNext;
             len = currentLogLine.length;
         }
         else {
@@ -59,8 +57,9 @@ function lower_bound(searchString) {
         }
     }
 
-    fs.closeSync(fd);
-
+    if(start_byte >= bytes) {
+        ans = null;
+    }
     return {
         ans,
         start_byte,

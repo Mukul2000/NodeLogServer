@@ -1,11 +1,11 @@
-const fs = require('fs');
+const { open, close, read, stat } = require('./promisify');
 const { lower_bound } = require('./search');
 
 const routes = {
-    logs: (data, res) => {
+    logs: async (data, res) => {
         // date format is YYYY-MM-DD
         // time format is hh:mm:ss
-        
+
         const { startDate, startTime, endDate, endTime } = data.queryString;
 
         //all parameters are required
@@ -16,7 +16,7 @@ const routes = {
         }
 
         //invalid request interval
-        if ((endDate < startDate) || ( (startDate === endDate) && (endTime < startTime) )) {
+        if ((endDate < startDate) || ((startDate === endDate) && (endTime < startTime))) {
             bad_request("Bad request, request intervals incorrect", res, 400);
             return;
         }
@@ -26,19 +26,25 @@ const routes = {
         const startSearchString = startDate + "T" + startTime;
         const endSearchString = endDate + "T" + endTime;
 
+        
+        const file_path = 'example.txt';
+        let file_descriptor = open(file_path, 'r');
+        let stats = stat(file_path);
+        const [fd, bytes] = await Promise.all([file_descriptor, stats]); //both are independent, can do here
 
-        const upper = lower_bound(startSearchString);
+        const result_1 = lower_bound(startSearchString, fd, bytes.size);
+        const result_2 = lower_bound(endSearchString, fd, bytes.size);
+
+        const [upper, lower] = await Promise.all([result_1, result_2]);
         const startLine = upper.ans;
         const startLineByte = upper.start_byte;
-
-        const lower = lower_bound(endSearchString);
         const endLine = lower.ans;
         const endLineByte = lower.start_byte + lower.len;
 
-        // Take care of when any one of start`Line or endLine are null
+        // Take care of when any one of startLine or endLine are null
         // user is possibly requesting logs at a future point of time
-        if(startLine == null || endLine == null) {
-            bad_request("Something went wrong, possibly your parameters include a point of time in the future",res, 400);
+        if (startLine == null || endLine == null) {
+            bad_request("Something went wrong, possibly your parameters include a point of time in the future", res, 400);
             return;
         }
 
@@ -48,21 +54,20 @@ const routes = {
         let flag = 0; //To add a message that logs have been truncated
 
         let bytesToServe = endLineByte - startLineByte + 1;
-        if(bytesToServe > max_transfer_size) {
+        if (bytesToServe > max_transfer_size) {
             bytesToServe = max_transfer_size;
             flag = 1;
         }
 
         if (endLine > endSearchString) bytesToServe--;
-        
+
         let buffer = Buffer.alloc(bytesToServe);
-        fd = fs.openSync('example.txt', 'r');
-        let ps = fs.readSync(fd, buffer, 0, buffer.length, startLineByte);
-        let result = buffer.slice(0, ps).toString();
+        let { bytesRead, buf } = await read(fd, buffer, 0, buffer.length, startLineByte);
+        let result = buffer.slice(0, bytesRead).toString();
         res.write(result);
-        if(flag === 1) res.write("Lines truncated....");
+        if (flag === 1) res.write("Lines truncated....");
         res.end();
-        fs.closeSync(fd);
+        await close(fd);
     },
     notFound: (data, res) => bad_request("Invalid route", res, 404)
 }

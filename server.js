@@ -20,7 +20,7 @@ server.on('request', (req, res) => {
     req.on('data', () => {
         //need it just for 'end' to fire, don't need it here
     });
-    req.on('end', () => {
+    req.on('end', async () => {
         //'end' event occurs when the stream ends
         console.log("End of request");
         let route =
@@ -32,7 +32,7 @@ server.on('request', (req, res) => {
             method: method
         };
 
-        route(data, res);
+        await route(data, res);
     });
     req.on('close', () => {
         console.log('Connection closed')
