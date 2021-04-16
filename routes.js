@@ -4,7 +4,7 @@ const { lower_bound, searchInFiles } = require('./search');
 const routes = {
     logs: async (data, res) => {
         // date format is YYYY-MM-DD
-        // time format is hh:mm:ss
+        // time format is HH:MM:SS
 
         const { startDate, startTime, endDate, endTime } = data.queryString;
 

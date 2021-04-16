@@ -1,17 +1,14 @@
 const { open, close, read, stat, readdir } = require('./promisify');
 const { EOL } = require('os');
+const BYTESLIMIT = 1000000; //10MB
 
 async function searchInFiles(startSearchString, endSearchString, res) {
     const logFolder = "./logs/";
+    let sentBytes = 0; // keep track of amount of data sent
     try {
-        // NOTE: Unlike before, if the end timestamp points to the future, query will give logs from start timestamp
-        // to the last log.
-        // TODO: find a way to enforce maximum size of logs transferred in request. 
-
         const files = await readdir(logFolder); // get files in logs directory
         for (let i = 0; i < files.length; i++) {
             const file_path = logFolder + files[i]; //OK
-            console.log(file_path);
 
             // open file
             let file_descriptor = open(file_path, 'r');
@@ -22,8 +19,6 @@ async function searchInFiles(startSearchString, endSearchString, res) {
             const result_1 = lower_bound(startSearchString, fd, bytes.size);
             const result_2 = lower_bound(endSearchString, fd, bytes.size);
             const [upper, lower] = await Promise.all([result_1, result_2]); // both are independent, faster searching
-
-            console.log(upper, lower);
 
             // parse results
             let startLine = upper.ans;
@@ -41,12 +36,17 @@ async function searchInFiles(startSearchString, endSearchString, res) {
                     // this query spans files, take this file upto it's end and move to next file
                     endLineByte = bytes.size - 1;
                     let bytesToServe = endLineByte - startLineByte + 1;
-                    console.log("reading spans query in ", files[i]);
                     let buffer = Buffer.alloc(bytesToServe);
                     let { bytesRead, buf } = await read(fd, buffer, 0, buffer.length, startLineByte);
                     let result = buffer.slice(0, bytesRead).toString();
                     res.write(result);
+                    sentBytes += bytesRead;
                     await close(fd);
+                    if(sentBytes >= BYTESLIMIT) {
+                        res.write("Lines truncated....");
+                        res.end();
+                        break;
+                    }
                 }
                 else {
                     // This file contains the whole query
@@ -136,18 +136,5 @@ async function lower_bound(searchString, fd, bytes) {
         len
     }
 }
-
-// async function Icheckbinarysearch() {
-//     const file_path = "./checker.txt";
-//     let file_descriptor = open(file_path, 'r');
-//     let stats = stat(file_path);
-//     const [fd, bytes] = await Promise.all([file_descriptor, stats]);
-//     const searchString = "2020-01-01T00:01:50"
-//     const res1 = await lower_bound(searchString, fd, bytes.size);
-//     console.log(res1);
-// }
-
-// Icheckbinarysearch();
-
 
 module.exports = { lower_bound, searchInFiles };
