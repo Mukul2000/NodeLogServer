@@ -3,19 +3,15 @@ const { EOL } = require('os');
 
 
 //find first log with timestamp >= searchString
-async function lower_bound(searchString) {
-    const file_path = 'example.txt';
+async function lower_bound(searchString,fd,bytes) {
     let ans = null;
     let start_byte = null; //store the byte at which the ans starts
     let len = 0;
 
-    let file_descriptor = open(file_path, 'r');
-
     let buffer = Buffer.alloc(258);
-    let stats = stat(file_path);
-    const [fd,bytes] = await Promise.all([file_descriptor,stats]); //both are independent, can do here
+    
     let lo = 0;
-    let hi = bytes.size - 1;
+    let hi = bytes - 1;
     
     while (lo < hi) {
 
@@ -61,7 +57,6 @@ async function lower_bound(searchString) {
         }
     }
 
-    await close(fd);
     if(start_byte >= bytes) {
         ans = null;
     }

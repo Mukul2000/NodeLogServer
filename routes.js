@@ -26,8 +26,14 @@ const routes = {
         const startSearchString = startDate + "T" + startTime;
         const endSearchString = endDate + "T" + endTime;
 
-        const result_1 = lower_bound(startSearchString);
-        const result_2 = lower_bound(endSearchString);
+        
+        const file_path = 'example.txt';
+        let file_descriptor = open(file_path, 'r');
+        let stats = stat(file_path);
+        const [fd, bytes] = await Promise.all([file_descriptor, stats]); //both are independent, can do here
+
+        const result_1 = lower_bound(startSearchString, fd, bytes.size);
+        const result_2 = lower_bound(endSearchString, fd, bytes.size);
 
         const [upper, lower] = await Promise.all([result_1, result_2]);
         const startLine = upper.ans;
@@ -56,8 +62,7 @@ const routes = {
         if (endLine > endSearchString) bytesToServe--;
 
         let buffer = Buffer.alloc(bytesToServe);
-        fd = await open('example.txt', 'r');
-        let {bytesRead, buf} = await read(fd, buffer, 0, buffer.length, startLineByte);
+        let { bytesRead, buf } = await read(fd, buffer, 0, buffer.length, startLineByte);
         let result = buffer.slice(0, bytesRead).toString();
         res.write(result);
         if (flag === 1) res.write("Lines truncated....");
