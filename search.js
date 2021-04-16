@@ -1,27 +1,31 @@
-const fs = require('fs');
+const {open, close, read, stat} = require('./promisify');
 const { EOL } = require('os');
+const fs = require('fs');
 
 
 //find first log with timestamp >= searchString
-function lower_bound(searchString) {
-    const file_name = 'example.txt';
+async function lower_bound(searchString) {
+    const file_path = 'example.txt';
     let ans = null;
     let start_byte = null; //store the byte at which the ans starts
     let len = 0;
 
-    fd = fs.openSync(file_name, 'r');
+    let fd = await open(file_path, 'r');
 
     let buffer = Buffer.alloc(258);
 
-    let lo = 0, hi = fs.statSync(file_name).size - 1;
+    let lo = 0;
+    let hi = 5625214; // TODO: Find a way to do this asynchronously
+    // sync is fs.statSync
+    // console.log(hi);
 
     while (lo < hi) {
 
         let mid = lo + Math.floor((hi - lo) / 2);
         let pos = 0;
         if (mid > 0) {
-            pos = fs.readSync(fd, buffer, 0, buffer.length, mid); //read 258 bytes and fill my buffer
-            const cur = buffer.slice(0, pos).toString();
+            await read(fd, buffer, 0, buffer.length, mid); //read 258 bytes and fill my buffer
+            const cur = buffer.slice(0, buffer.length).toString();
             for (let i = 0; i < cur.length; i++) {
                 if (cur[i] === EOL) {
                     pos = i + 1;
@@ -37,8 +41,8 @@ function lower_bound(searchString) {
         //line break occurs earlier
 
         
-        pos = fs.readSync(fd, buffer, 0, buffer.length, mid + pos);
-        let current = buffer.slice(0, pos).toString();
+        await read(fd, buffer, 0, buffer.length, mid + pos);
+        let current = buffer.slice(0, buffer.length).toString();
         for (let i = 0; i < current.length; i++) {
             currentLogLine += current[i];
             if (current[i] === EOL) break;
@@ -59,7 +63,7 @@ function lower_bound(searchString) {
         }
     }
 
-    fs.closeSync(fd);
+    await close(fd);
 
     return {
         ans,

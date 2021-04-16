@@ -1,8 +1,8 @@
-const fs = require('fs');
+const {open, close, read, stat} = require('./promisify');
 const { lower_bound } = require('./search');
 
 const routes = {
-    logs: (data, res) => {
+    logs: async (data, res) => {
         // date format is YYYY-MM-DD
         // time format is hh:mm:ss
         
@@ -27,13 +27,15 @@ const routes = {
         const endSearchString = endDate + "T" + endTime;
 
 
-        const upper = lower_bound(startSearchString);
+        const upper = await lower_bound(startSearchString);
         const startLine = upper.ans;
         const startLineByte = upper.start_byte;
 
-        const lower = lower_bound(endSearchString);
+        const lower = await lower_bound(endSearchString);
         const endLine = lower.ans;
         const endLineByte = lower.start_byte + lower.len;
+
+        console.log(upper,lower);
 
         // Take care of when any one of start`Line or endLine are null
         // user is possibly requesting logs at a future point of time
@@ -56,13 +58,13 @@ const routes = {
         if (endLine > endSearchString) bytesToServe--;
         
         let buffer = Buffer.alloc(bytesToServe);
-        fd = fs.openSync('example.txt', 'r');
-        let ps = fs.readSync(fd, buffer, 0, buffer.length, startLineByte);
-        let result = buffer.slice(0, ps).toString();
+        fd = await open('example.txt', 'r');
+        await read(fd, buffer, 0, buffer.length, startLineByte);
+        let result = buffer.slice(0, buffer.length).toString();
         res.write(result);
         if(flag === 1) res.write("Lines truncated....");
         res.end();
-        fs.closeSync(fd);
+        await close(fd);
     },
     notFound: (data, res) => bad_request("Invalid route", res, 404)
 }
