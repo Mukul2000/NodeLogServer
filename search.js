@@ -16,32 +16,32 @@ async function lower_bound(searchString) {
     let lo = 0;
     let hi = bytes - 1;
     
-    console.log(hi);
+    // console.log(hi);
 
     while (lo < hi) {
 
         let mid = lo + Math.floor((hi - lo) / 2);
-        let pos = 0;
+        let pos;
+        let bytesToNext=0;
         if (mid > 0) {
-            await read(fd, buffer, 0, buffer.length, mid); // read 258 bytes and fill my buffer
-            const cur = buffer.slice(0, buffer.length).toString();
+            pos = await read(fd, buffer, 0, buffer.length, mid); // read 258 bytes and fill my buffer
+            const cur = buffer.slice(0, pos.bytesRead).toString();
             for (let i = 0; i < cur.length; i++) {
                 if (cur[i] === EOL) {
-                    pos = i + 1;
+                    bytesToNext = i + 1;
                     break; // break at first line break
                 }
             }
         }
 
-        // mid + pos now points at start of line after the line mid is on
-        let pos2 = pos; //save pos
+        // mid + pos.bytesToNext now points at start of line after the line mid is on
         let currentLogLine = ""; 
-        // will store from mid + pos to mid + pos + 256 bytes or wherever
+        // will store from mid + bytesToNext to mid + pos + 256 bytes or wherever
         // line break occurs earlier
 
         
-        await read(fd, buffer, 0, buffer.length, mid + pos);
-        let current = buffer.slice(0, buffer.length).toString();
+        pos = await read(fd, buffer, 0, buffer.length, mid + bytesToNext);
+        let current = buffer.slice(0, pos.bytesRead).toString();
         for (let i = 0; i < current.length; i++) {
             currentLogLine += current[i];
             if (current[i] === EOL) break;
@@ -54,7 +54,7 @@ async function lower_bound(searchString) {
         if (dt >= searchString) {
             hi = mid - 1;
             ans = currentLogLine;
-            start_byte = mid + pos2;
+            start_byte = mid + bytesToNext;
             len = currentLogLine.length;
         }
         else {
