@@ -34,9 +34,9 @@ async function lower_bound(searchString) {
             }
         }
 
-        // mid + pos.bytesToNext now points at start of line after the line mid is on
+        // mid + bytesToNext now points at start of line after the line mid is on
         let currentLogLine = ""; 
-        // will store from mid + bytesToNext to mid + pos + 256 bytes or wherever
+        // will store from mid + bytesToNext to mid + bytesToNext + 256 bytes or wherever
         // line break occurs earlier
 
         
