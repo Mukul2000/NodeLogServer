@@ -27,6 +27,7 @@ async function searchInFiles(startSearchString, endSearchString, res) {
 
             if (startLine === null) {
                 // This file is a bust, move on
+                await close(fd);
             }
             else {
                 //more parsing
