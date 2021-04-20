@@ -25,7 +25,13 @@ const routes = {
         const startSearchString = startDate + "T" + startTime;
         const endSearchString = endDate + "T" + endTime;
 
-        await searchInFiles(startSearchString, endSearchString, res);
+        try
+        {
+            await searchInFiles(startSearchString, endSearchString, res);
+        }
+        catch(e) {
+            bad_request(e,res,404);
+        }
     },
     notFound: (data, res) => bad_request("Invalid route", res, 404)
 }

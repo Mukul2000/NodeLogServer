@@ -69,8 +69,7 @@ async function searchInFiles(startSearchString, endSearchString, res) {
 
     }
     catch (e) {
-        // TODO: probably will throw a no such folder error
-        console.log(e);
+        throw(e);
     }
 }
 
